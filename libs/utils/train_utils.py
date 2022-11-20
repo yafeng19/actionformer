@@ -390,7 +390,7 @@ def valid_one_epoch(
         with torch.no_grad():
             output = model(video_list)
 
-            # upack the results into ANet format
+            # unpack the results into ANet format
             num_vids = len(output)
             for vid_idx in range(num_vids):
                 if output[vid_idx]['segments'].shape[0] > 0:
@@ -422,10 +422,10 @@ def valid_one_epoch(
     results['score'] = torch.cat(results['score']).numpy()
 
     if evaluator is not None:
-        if (ext_score_file is not None) and isinstance(ext_score_file, str):
+        if ext_score_file is not None and isinstance(ext_score_file, str):
             results = postprocess_results(results, ext_score_file)
         # call the evaluator
-        _, mAP = evaluator.evaluate(results, verbose=True)
+        _, mAP, _ = evaluator.evaluate(results, verbose=True)
     else:
         # dump to a pickle file that can be directly used for evaluation
         with open(output_file, "wb") as f:

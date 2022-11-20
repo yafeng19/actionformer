@@ -48,9 +48,7 @@ class MaskedConv1D(nn.Module):
         if self.stride > 1:
             # downsample the mask using nearest neighbor
             out_mask = F.interpolate(
-                mask.to(x.dtype),
-                size=T//self.stride,
-                mode='nearest'
+                mask.to(x.dtype), size=out_conv.size(-1), mode='nearest'
             )
         else:
             # masking out the features
@@ -233,18 +231,15 @@ class MaskedMHCA(nn.Module):
         # query conv (depthwise)
         kernel_size = self.n_qx_stride + 1 if self.n_qx_stride > 1 else 3
         stride, padding = self.n_kv_stride, kernel_size // 2
-        # 1d depthwise conv
         self.query_conv = MaskedConv1D(
             self.n_embd, self.n_embd, kernel_size,
             stride=stride, padding=padding, groups=self.n_embd, bias=False
         )
-        # layernorm
         self.query_norm = LayerNorm(self.n_embd)
 
         # key, value conv (depthwise)
         kernel_size = self.n_kv_stride + 1 if self.n_kv_stride > 1 else 3
         stride, padding = self.n_kv_stride, kernel_size // 2
-        # 1d depthwise conv
         self.key_conv = MaskedConv1D(
             self.n_embd, self.n_embd, kernel_size,
             stride=stride, padding=padding, groups=self.n_embd, bias=False
@@ -254,7 +249,6 @@ class MaskedMHCA(nn.Module):
             self.n_embd, self.n_embd, kernel_size,
             stride=stride, padding=padding, groups=self.n_embd, bias=False
         )
-        # layernorm
         self.value_norm = LayerNorm(self.n_embd)
 
         # key, query, value projections for all heads
@@ -362,18 +356,15 @@ class LocalMaskedMHCA(nn.Module):
         # query conv (depthwise)
         kernel_size = self.n_qx_stride + 1 if self.n_qx_stride > 1 else 3
         stride, padding = self.n_kv_stride, kernel_size // 2
-        # 1d depthwise conv
         self.query_conv = MaskedConv1D(
             self.n_embd, self.n_embd, kernel_size,
             stride=stride, padding=padding, groups=self.n_embd, bias=False
         )
-        # layernorm
         self.query_norm = LayerNorm(self.n_embd)
 
         # key, value conv (depthwise)
         kernel_size = self.n_kv_stride + 1 if self.n_kv_stride > 1 else 3
         stride, padding = self.n_kv_stride, kernel_size // 2
-        # 1d depthwise conv
         self.key_conv = MaskedConv1D(
             self.n_embd, self.n_embd, kernel_size,
             stride=stride, padding=padding, groups=self.n_embd, bias=False
@@ -383,7 +374,6 @@ class LocalMaskedMHCA(nn.Module):
             self.n_embd, self.n_embd, kernel_size,
             stride=stride, padding=padding, groups=self.n_embd, bias=False
         )
-        # layernorm
         self.value_norm = LayerNorm(self.n_embd)
 
         # key, query, value projections for all heads
@@ -762,7 +752,7 @@ class ConvBlock(nn.Module):
         if n_out is None:
             n_out = n_embd
 
-        # 1x3 (strided) -> 1x3 (basic block in resnet)
+         # 1x3 (strided) -> 1x3 (basic block in resnet)
         width = n_embd * expansion_factor
         self.conv1 = MaskedConv1D(
             n_embd, width, kernel_size, n_ds_stride, padding=padding)
